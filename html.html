@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <style type="text/css">
+	@page{
+		margin-top:0.1cm;
+		margin-left:0.5cm;
+		margin-right:0.5cm;
+	}
+    
+	table { page-break-inside:auto;text-align:center;font-size:20px; border:1px solid black}
+    tr    { page-break-inside:avoid; page-break-after:auto }
+	td    { height="37px";}
+    thead { display:table-header-group; text-align:center; }
+    tfoot { display:table-footer-group }
+	
+	* {
+		-webkit-print-color-adjust: exact !important;   /* Chrome, Safari 6 – 15.3, Edge */
+		color-adjust: exact !important;                 /* Firefox 48 – 96 */
+		print-color-adjust: exact !important;           /* Firefox 97+, Safari 15.4+ */
+	}
+</style>
+<script>
+var isNoGetNoShow = false;
+
+function noGetnoShow() {
+	if (document.getElementById("noGetNoShowCheckbox").checked) 
+	{
+		isNoGetNoShow=true;
+	} 
+	else 
+	{
+		isNoGetNoShow = false;
+	}
+}
+
+var isShowBottom = false;
+
+function showBottom() {
+	if (document.getElementById("ShowBottomCheckbox").checked) 
+	{
+		isShowBottom=true;
+		document.getElementById('bottomfirstAlert').style.visibility= "visible";
+		document.getElementById('bottomfirstAlert').style.display="block";
+	} 
+	else 
+	{
+		document.getElementById('bottomfirstAlert').style.visibility="hidden";
+		document.getElementById('bottomfirstAlert').style.display="none";
+		isShowBottom = false;
+	}
+}
+
+function tableCreate() {
+	document.getElementById('firstAlert').style.visibility = "visible";
+	document.getElementById('firstAlert').style.display="block";
+	document.getElementById('firstAlert').style.fontSize=parseInt(document.getElementById('NAlertSize').value) + "px";
+	document.getElementById('firstAlert').innerText = document.getElementById('SAlert').value;
+
+	document.getElementById('parms').style.visibility="hidden";
+	document.getElementById('parms').style.display="none";
+	var arr=[];
+	var Ntotal=parseInt(document.getElementById('Nmax').value) - parseInt(document.getElementById('Nmin').value) +1;
+	var NinCol=parseInt(document.getElementById('NinCol').value);
+	var NinRaw=parseInt(document.getElementById('NinRaw').value);
+	var NtotalRaw = Ntotal/NinCol;
+	var Npages=((Ntotal/NinCol)/NinRaw);
+	for(var irandom=1;irandom<=Ntotal;irandom++){
+		arr.push(irandom);
+	}
+	arr.sort(function(){
+		return Math.random()-0.5;
+	})
+	arr.length=Ntotal;//改寫長度
+	console.log(arr);//控制檯輸出
+	
+	const body = document.getElementById('theTbl');
+	tbl = document.createElement('table');
+	tbl.id = 'theTable';
+	tbl.style.width = '100%';
+	
+	tbl.style.border = '1px solid black';
+	for (let i = 0; i < NtotalRaw; i++) {
+		
+		if( (i)%NinRaw==0 && i != 0){
+			var tr2 = tbl.insertRow();
+			tr2.style='page-break-before:always;'
+			var td2 = tr2.insertCell();
+			td2.colSpan=NinCol;
+			td2.style.border = '1px solid black';
+			var tdspan = td2.appendChild(document.createElement("SPAN"));
+			tdspan.innerText = document.getElementById('SAlert').value;
+			tdspan.style.fontSize=parseInt(document.getElementById('NAlertSize').value) + "px";
+			tr = tbl.insertRow();
+		}else{
+			var tr = tbl.insertRow();
+		}
+		for (let j = 0; j < NinCol; j++) {
+			
+			let x = Math.floor(Math.random() * 10) + 1;
+			
+			const td = tr.insertCell();
+			td.style.height=parseInt(document.getElementById('NRawPx').value)+"px";
+			<!-- td.appendChild(document.createTextNode(`Cell I${i}/J${j}`)); -->
+			td.style.backgroundImage = "url('bg.png')";
+			<!-- td.style.backgroundImage = "url('bg.jpg')"; -->
+			td.style.backgroundSize = "cover";
+			var span = td.appendChild(document.createElement("SPAN"));
+			span.setAttribute("id","span"+i+j);
+			if(typeof (arr[(i*NinCol)+j]) !== 'undefined'){
+				var theValueAt= (i*NinCol)+j;
+				var theValueAtNumber = arr[theValueAt];
+				if(document.getElementById("noGetNoShowCheckbox").checked && theValueAtNumber>document.getElementById('hideNmin').value && theValueAtNumber < document.getElementById('hideNmax').value){
+					theValueAtNumber = 0;
+				}
+				if(x%3==0){
+					span.innerText += ''+ theValueAtNumber;
+					span.innerText += '\t'+document.getElementById('SlogoL').value + document.getElementById('SlogoR').value;
+					span.innerHTML = span.innerHTML.replace(/\d+/g, '<span style="color:red;">$&</span>');
+				}
+				else if(x%3==1){
+					span.innerText += ''+document.getElementById('SlogoL').value;
+					span.innerText += '\t'+ theValueAtNumber;
+					span.innerText += '\t'+document.getElementById('SlogoR').value;
+					span.innerHTML = span.innerHTML.replace(/\d+/g, '<span style="color:red;">$&</span>');
+				}
+				else
+				{
+					span.innerText += document.getElementById('SlogoL').value+document.getElementById('SlogoR').value+'\t'
+					span.innerText += ''+ theValueAtNumber;
+					span.innerHTML = span.innerHTML.replace(/\d+/g, '<span style="color:red;">$&</span>');
+				}
+				
+			}
+			td.style.border = '1px solid black';
+		}
+	}
+	body.appendChild(tbl);
+	
+}
+
+function px2cm(thePx, precision, dest){
+	var v = Math.round(Math.round((thePx * 0.02645) * Math.pow(10, (precision || 0) + 1)) / 10) / Math.pow(10, (precision || 0));  
+	document.getElementById(dest).value = v;
+}
+function cm2px(theCm, dest){
+	var v = Math.ceil(theCm * 37.7953);
+	document.getElementById(dest).value = v;
+}
+function calcEveryCol(Ncol,dest,style){
+	if(style=="h"){
+	document.getElementById(dest).innerText = Math.round(Math.round(((29.7 - 0.5 - 0.5)/Ncol) * Math.pow(10, (2 || 0) + 1)) / 10) / Math.pow(10, (2 || 0));}
+	if(style=="v"){
+	document.getElementById(dest).innerText = Math.round(Math.round(((21 - 0.5 - 0.5)/Ncol) * Math.pow(10, (2 || 0) + 1)) / 10) / Math.pow(10, (2 || 0));}
+}
+function detectKeyCodeAndShowBack(event){
+	let key = event.key;
+	if(key == "F4"){
+		document.getElementById('parms').style.visibility = "visible";
+		document.getElementById('parms').style.display="block";
+		
+		document.getElementById('firstAlert').style.visibility="hidden";
+		document.getElementById('firstAlert').style.display="none";
+		
+		document.getElementById('theTable').style.visibility="hidden";
+		document.getElementById('theTable').style.display="none";
+		document.getElementById('theTable').remove();
+	}
+}
+function setCombo(Ncombo){
+	var Nmin= "1";
+	var Nmax = "160";
+	var NinRaw = "27";
+	var NinCol = "6";
+	var NRawPx = "32";
+	var NAlertSize = "15"
+	switch(Ncombo){
+		case "60":
+			Nmin= "1";
+			Nmax = "60";
+			NinRaw = "10";
+			NinCol = "6";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "70h":
+			Nmin= "1";
+			Nmax = "70";
+			NinRaw = "10";
+			NinCol = "7";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "80h":
+			Nmin= "1";
+			Nmax = "80";
+			NinRaw = "10";
+			NinCol = "8";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "80v":
+			Nmin= "1";
+			Nmax = "80";
+			NinRaw = "16";
+			NinCol = "5";
+			NRawPx = "53";
+			NAlertSize="35";
+		break;
+		case "80c":
+			Nmin= "1";
+			Nmax = "80";
+			NinRaw = "10";
+			NinCol = "8";
+			NRawPx = "95";
+			NAlertSize="20";
+		break;
+		case "100h":
+			Nmin= "1";
+			Nmax = "100";
+			NinRaw = "13";
+			NinCol = "8";
+			NRawPx = "45";
+			NAlertSize="35";
+		break;
+		case "100v":
+			Nmin= "1";
+			Nmax = "100";
+			NinRaw = "17";
+			NinCol = "6";
+			NRawPx = "50";
+			NAlertSize="35";
+		break;
+		case "120":
+			Nmin= "1";
+			Nmax = "120";
+			NinRaw = "10";
+			NinCol = "6";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "140":
+			Nmin= "1";
+			Nmax = "140";
+			NinRaw = "10";
+			NinCol = "7";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "160":
+			Nmin= "1";
+			Nmax = "160";
+			NinRaw = "10";
+			NinCol = "8";
+			NRawPx = "60";
+			NAlertSize="35";
+		break;
+		case "160op":
+			Nmin= "1";
+			Nmax = "160";
+			NinRaw = "27";
+			NinCol = "6";
+			NRawPx = "32";
+			NAlertSize = "15"
+		break;
+		default:
+		//剩下這邊套餐參數值要增加..... 懶得弄
+		break;
+	}
+	document.getElementById('Nmin').value=Nmin;
+	document.getElementById('Nmax').value=Nmax;
+	document.getElementById('NinRaw').value=NinRaw;
+	document.getElementById('NinCol').value=NinCol;
+	document.getElementById('NRawPx').value=NRawPx;
+	document.getElementById('NRawPx').value=NRawPx;
+	document.getElementById('NAlertSize').value=NAlertSize;
+
+}
+
+function changeBottomAlert(){
+document.getElementById('bottomfirstAlert').innerText = document.getElementById('bottomSAlert').value
+document.getElementById('bottomfirstAlert').style.fontSize=parseInt(document.getElementById('bottomNAlertSize').value) + "px";
+}
+</script>  
+</head>
+<body onkeydown="detectKeyCodeAndShowBack(event)">
+<span id='parms'>
+	說明：顯示列印後，若不滿意可以按F4重新設定</br>
+	最小數字<input type="txt" name="Nmin" id ="Nmin" value="1"></br>
+	最大數字<input type="txt" name="Nmax" id ="Nmax" value="160"></br>
+	一頁幾行<input type="txt" name="NinRaw" id ="NinRaw" value="27"></br>
+	一行幾格<input type="txt" name="NinCol" id ="NinCol" value="6" onblur="calcEveryCol(this.value,'eachColWidthH','h');calcEveryCol(this.value,'eachColWidthV','v')">,橫印一格約<label id="eachColWidthH"></label>公分,直印一格約<label id="eachColWidthV"></label>公分</br>
+	一列多高<input type="txt" name="NRawPx" id ="NRawPx" value="32" onblur="px2cm(this.value,2,'NRawPx2CM')"> 約= <input type="txt" name="NRawPx2CM" id ="NRawPx2CM" value="" onblur="cm2px(this.value,'NRawPx')">公分</br>
+	警語文字<input type="txt" name="SAlert" id ="SAlert" style="width:100%;" value="本台贈夾一刮一，請勿多刮，多刮視同保夾購買，中獎拍照上傳群組"></br>
+	警語大小<input type="txt" name="NAlertSize" id ="NAlertSize" value="15"></br>
+	logo left<input type="txt" name="SlogoL" id ="SlogoL" value="阿">
+	logo right<input type="txt" name="SlogoR" id ="SlogoR" value="肯">
+	<input type="button" onClick="tableCreate()" value="產出">
+	
+	</br>
+	
+	<input type="checkbox" id="noGetNoShowCheckbox" onclick="noGetnoShow();">
+	遮蔽沒中的
+	遮蔽，從<input type="txt" name="hideNmin" id ="hideNmin" value="9">號 ~ <input type="txt" name="hideNmax" id ="hideNmax" value="81">號</br>
+	</br>
+	<input type="checkbox" id="ShowBottomCheckbox" onclick="showBottom();">顯示下警語
+	下警語文字<input type="txt" name="bottomSAlert" id ="bottomSAlert" style="width:100%;" value="80碼 → 400P 中獎號碼：______" onchange="changeBottomAlert()" onblur="changeBottomAlert()"></br>
+	下警語大小<input type="txt" name="bottomNAlertSize" id ="bottomNAlertSize" value="15" onchange="changeBottomAlert()" onblur="changeBottomAlert()"></br>
+	</br></br>
+	
+	<div style="border:1px solid black">
+	套餐==================</br>
+		<input type="button" onClick="setCombo('60')" value="60套餐橫印"></br>
+		<input type="button" onClick="setCombo('70h')" value="70套餐橫印"></br>
+		<input type="button" onClick="setCombo('80c')" value="80圓套餐直印"></br>
+		<input type="button" onClick="setCombo('80h')" value="80套餐橫印"></br>
+		<input type="button" onClick="setCombo('80v')" value="80套餐直印"></br>
+		<input type="button" onClick="setCombo('100h')" value="100套餐橫印"></br>
+		<input type="button" onClick="setCombo('100v')" value="100套餐直印"></br>
+		<input type="button" onClick="setCombo('120')" value="120套餐=60*2橫套"></br>
+		<input type="button" onClick="setCombo('140')" value="140套餐=70*2橫套"></br>
+		<input type="button" onClick="setCombo('160')" value="160套餐=80*2橫套"></br>
+		<input type="button" onClick="setCombo('160op')" value="160套餐一頁直印"></br>
+	套餐==================</br>	
+	</div>
+</span>
+<table style="border:1px solid black;width:100%;">
+<tr>
+<td colSpan='5'>
+<span id='firstAlert' style="font-size:25px; text-align:center;width:100%">
+本台贈夾一刮一，請勿多刮，多刮視同保夾購買，中獎拍照上傳群組
+</span>
+</td>
+</tr>
+</table>
+<div id='theTbl'></div>
+<span id='bottomfirstAlert' style="font-size:15px; text-align:center;width:100%">
+80碼 → 400P 中獎號碼：__
+</span>
+</body>
+</html>
